@@ -6,7 +6,7 @@ async function addressParser(data) {
             query : data.address
         },
         headers : {
-            Authorization : 'KakaoAK b9a280f33d2ad5d270d2e40e67ce3dc4'
+            Authorization : 'KakaoAK '
         }
     })
 
