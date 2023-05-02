@@ -5,7 +5,10 @@ import {
 	evalCode,
 	evalSigungu,
 	closeAlert,
-	getPageLength
+	getPageLength,
+	getData,
+	writeFile
+
 } from './module/crawler.js'
 
 async function main() {
@@ -31,11 +34,13 @@ async function main() {
 
 		await getPageLength()
 
+		await getData()
 
+		await writeFile()
 
-		console.log('end')
+		console.log('done')
 
-		// process.exit(1)
+		process.exit(1)
 }
 
 main()
