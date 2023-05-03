@@ -2,6 +2,7 @@
 import puppeteer from "puppeteer-core";
 import os from 'os';
 import fs from 'fs';
+import { addressParser } from "./parser.js";
 
 const macUrl = '/Applications/Google Chrome.app/Contents/MacOs/Google Chrome'
 const winUrl = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
@@ -61,7 +62,7 @@ const evalCode = async sidoCode => {
 const evalSigungu = async sigunguCode => {
     sigungu = sigunguCode
     console.log('evalSigungu')
-    const selector = `#continents > li.${sigungu} > a`
+    const selector = `#container #continents > li.${sigungu} > a`
 
     // DOM에 해당 엘리멘트가 로딩되기를 기다리는 메소드
     await page.waitForSelector(selector)
@@ -91,17 +92,32 @@ const getPageLength = async () => {
 }
 
 const writeFile = async () => {
-    const dirPath = `./json/${sido}` // 파일 디렉토리 위치
-    const filePath = `${dirPath}/${sigungu}.json` // 파일
-    const exist = fs.existsSync(dirPath)
 
-    if(!exist) {
-        fs.mkdir(dirPath, {recursive : true}, err => {
-            console.log(err)
-        })
+    //  for(let i=0; i<finalData.length; i++) {
+    //      // 좌표변환 하나당 1초
+    //      finalData[i] = await addressParser(finalData[i])
+    //  }
+    //    위 방식대로하면 하나하나 1초씩 잡아도 너무 오래걸림
+
+    const promiseArr = finalData.map(data => addressParser(data))
+
+    try {
+        finalData = await Promise.all(promiseArr)
+        const dirPath = `./json/${sido}` // 파일 디렉토리 위치
+        const filePath = `${dirPath}/${sigungu}.json` // 파일
+        const exist = fs.existsSync(dirPath)
+
+        if (!exist) {
+            fs.mkdir(dirPath, { recursive: true }, err => {
+                console.log(err)
+            })
+        }
+        await fs.writeFileSync(filePath, JSON.stringify(finalData))
+    } catch (e) {
+
     }
 
-    await fs.writeFileSync(filePath, JSON.stringify(finalData))
+
 }
 
 // 데이터 크롤링
@@ -114,11 +130,11 @@ const getData = async () => {
                 .map(el => {
                     console.log(el)
                     return {
-                        name : el.querySelectorAll('td')[0]?.innerText,
+                        name: el.querySelectorAll('td')[0]?.innerText,
                         address: el.querySelector('.class_addr')?.innerText.
-                        replaceAll('\t','').replaceAll('\n',''),
+                            replaceAll('\t', '').replaceAll('\n', ''),
                         tel: el.querySelectorAll('td')[3]?.innerText,
-                        run_time : el.querySelectorAll('td')[4]?.innerText,
+                        run_time: el.querySelectorAll('td')[4]?.innerText,
                     };
                 })
                 .filter(val => val.address != undefined)
